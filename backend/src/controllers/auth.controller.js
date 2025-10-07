@@ -1,4 +1,5 @@
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import cloudinary from "../lib/cloudinary.js";
 import { ENV } from "../lib/env.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
@@ -66,6 +67,7 @@ export const signup = async(req, res) => {
     }
 }
 
+
 export const login = async(req, res) => {
     const {email, password} = req.body;
 
@@ -101,7 +103,55 @@ export const login = async(req, res) => {
     }
 }
 
+
 export const logout = (_, res) => {
     res.cookie("jwt", "", {maxAge: 0});
     res.status(200).json({message: 'Logged out successfully'});
 }
+
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { fullName, profilePic } = req.body;
+
+        if (!fullName?.trim()) {
+            return res.status(400).json({ message: 'Full name is required' });
+        }
+
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.fullName = fullName.trim();
+
+        if (profilePic) {
+            try {
+                const uploadedResponse = await cloudinary.uploader.upload(profilePic, {
+                    folder: 'profile_pics',
+                    width: 150,
+                    height: 150,
+                    crop: 'fill',
+                });
+
+                if (uploadedResponse.secure_url) {
+                    user.profilePic = uploadedResponse.secure_url;
+                }
+            } catch (uploadErr) {
+                console.error("Cloudinary upload error:", uploadErr);
+                return res.status(500).json({ message: 'Profile picture upload failed' });
+            }
+        }
+
+        const updatedUser = await user.save();
+
+        const { password, ...safeUser } = updatedUser._doc;
+
+        res.status(200).json(safeUser);
+
+    } catch (error) {
+        console.error("Error in updateProfile:", error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
