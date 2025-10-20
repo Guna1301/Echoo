@@ -16,4 +16,4 @@ router.get('/check', protectRoute, (req, res) => {
     res.status(200).json(req.user);
 })
 
-export default router;
+export default router; 
