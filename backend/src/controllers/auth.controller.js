@@ -110,47 +110,23 @@ export const logout = (_, res) => {
 
 
 export const updateProfile = async (req, res) => {
-    try {
-        const { fullName, profilePic } = req.body;
+  try {
+    const { profilePic } = req.body;
+    if (!profilePic) return res.status(400).json({ message: "Profile pic is required" });
 
-        if (!fullName?.trim()) {
-            return res.status(400).json({ message: 'Full name is required' });
-        }
+    const userId = req.user._id;
 
-        const userId = req.user._id;
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+    const uploadResponse = await cloudinary.uploader.upload(profilePic);
 
-        user.fullName = fullName.trim();
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: uploadResponse.secure_url },
+      { new: true }
+    );
 
-        if (profilePic) {
-            try {
-                const uploadedResponse = await cloudinary.uploader.upload(profilePic, {
-                    folder: 'profile_pics',
-                    width: 150,
-                    height: 150,
-                    crop: 'fill',
-                });
-
-                if (uploadedResponse.secure_url) {
-                    user.profilePic = uploadedResponse.secure_url;
-                }
-            } catch (uploadErr) {
-                console.error("Cloudinary upload error:", uploadErr);
-                return res.status(500).json({ message: 'Profile picture upload failed' });
-            }
-        }
-
-        const updatedUser = await user.save();
-
-        const { password, ...safeUser } = updatedUser._doc;
-
-        res.status(200).json(safeUser);
-
-    } catch (error) {
-        console.error("Error in updateProfile:", error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.log("Error in update profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
