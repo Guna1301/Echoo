@@ -4,8 +4,7 @@ import { protectRoute } from '../middleware/auth.middleware.js';
 import { arcjetProtection } from '../middleware/arcjet.middleware.js';
 
 const router = express.Router();
-// TODO: Enable Arcjet protection after testing
-// router.use(arcjetProtection);
+router.use(arcjetProtection);
 
 router.post('/signup', signup);
 router.post('/login', login);
