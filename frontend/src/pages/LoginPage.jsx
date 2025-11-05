@@ -22,7 +22,8 @@ function LoginPage() {
             <div className="md:w-1/2 p-8 flex items-center justify-center md:border-r border-slate-600/30">
               <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                  <MessageCircleIcon className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+                  {/* <MessageCircleIcon className="w-12 h-12 mx-auto text-slate-400 mb-4" /> */}
+                  <img src="/logo.png" alt="Logo" className="size-20 mx-auto mb-4" />
                   <h2 className="text-2xl font-bold text-slate-200 mb-2">Welcome Back</h2>
                   <p className="text-slate-400">Login to access to your account</p>
                 </div>
